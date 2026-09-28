@@ -1,0 +1,6 @@
+# comment-sidecar v2
+--- fingerprints.js
++++ fingerprints.js.annotated
+@@ 4 @@ id=sc_f99d04ccb8c4 base=4d8cea202782555a54800b61c8a76bc452db9a711edd80bc6503edcb4e98a394 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=cac50b4118ce7e3841f88004ae3c3cee9bad5b7bf4e21b4c33b6dd1e79f025e0 context=9291f3c2c79d380fbe66c7e478ea733eb8099806ca52e945f8e30239fd90677c
++// Hash the exact lines, not normalized syntax; array encoding preserves boundaries.

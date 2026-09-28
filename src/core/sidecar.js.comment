@@ -1,0 +1,6 @@
+# comment-sidecar v2
+--- sidecar.js
++++ sidecar.js.annotated
+@@ 2 @@ id=sc_506cf77f2022 base=14a6880c33a6fecaad4be04343d4835a947cdca6d3af73856fbfae4921816b1c state=attached
+@anchor sha256 before=1 after=2 strong=1 target=db1e42b503f8a8f1f0fe82bc5345bd1a4d4055ade3de211d57cae33e75f4861e context=ff5373b4e2727b7223d97bcb80d990ff4c3040624b5a0f94ae8b3d49fff0047c
++// A source file's comments live in a sibling file: app.tsx → app.tsx.comment.

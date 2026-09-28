@@ -5,7 +5,6 @@ const { javascriptFiles } = require('./javascript-files');
 
 const root = path.resolve(__dirname, '..');
 
-// Keywords that take a block. Skipped after a dot, so `promise.catch(...)` is not a statement.
 const BLOCK_KEYWORD = /(?<![.\w$])(if|for|while|else|try|catch|finally|do)(?![\w$]|\s*:)/g;
 const HAS_CONDITION = new Set(['if', 'for', 'while', 'catch']);
 const AFTER_OPERATOR = /[(,=:[!&|?{};+\-*%<>~^]$/;
@@ -128,7 +127,6 @@ function regexEnd(source, start) {
   return index;
 }
 
-// A slash starts a regular expression where an operand is expected, and divides after one.
 function regexMayStart(code) {
   const before = code.slice(-200).trimEnd();
   return before === '' || AFTER_OPERATOR.test(before) || AFTER_KEYWORD.test(before);
@@ -149,8 +147,6 @@ function literalEnd(source, index, code) {
   return index;
 }
 
-// The source with comments, strings, template literals and regular expressions blanked out,
-// so the rules only see code. Every line and column stays where it was.
 function codeOnly(source) {
   let code = '';
   let index = 0;
@@ -187,7 +183,6 @@ function isDoWhileTail(code, keyword, matchIndex, start) {
   return keyword === 'while' && code[start] === ';' && code.slice(0, matchIndex).trimEnd().endsWith('}');
 }
 
-// The body of every `if`, loop and `try` is a block that starts a line of its own.
 function blockProblems(code) {
   const found = [];
   for (const match of code.matchAll(BLOCK_KEYWORD)) {
@@ -209,7 +204,6 @@ function blockProblems(code) {
   return found;
 }
 
-// A semicolon that ends a statement is followed by nothing but closing brackets on its line.
 function sharedLines(code) {
   const found = [];
   const forHeaders = [];
@@ -240,7 +234,6 @@ function isTernaryMark(code, index) {
   return next !== '?' && code[index - 1] !== '?' && !optionalChain;
 }
 
-// A second `?` before the expression ends, by `;` or `,` or a closing bracket, is nested or chained.
 function nestedTernaries(code) {
   const found = [];
   const inside = [false];

@@ -40,7 +40,6 @@ function registerCommands(context, { store, drafts, output, log, updated, previe
     return { editor, root, entry: await store.get(editor.document) };
   }
 
-  // Workspace-wide commands need a folder, not an open source file.
   function workspaceRoot() {
     const editor = vscode.window.activeTextEditor;
     const folder = (editor && vscode.workspace.getWorkspaceFolder(editor.document.uri)) || vscode.workspace.workspaceFolders?.[0];

@@ -63,7 +63,6 @@ async function sidecarRenameEdit(files) {
 
       edit.renameFile(oldSidecar, newSidecar, { overwrite: false });
     } catch {
-      // No sidecar file, so there is nothing to rename.
     }
   }
 

@@ -181,7 +181,6 @@ test('rejects mismatched editor event snapshots', () => {
   assert.throws(() => trackEdits(SOURCE, 'unrelated', resolveNotes(SOURCE, [note()]), []), /match/);
 });
 
-// Offsets of a SOURCE line: [start, end before its line break].
 function span(line) {
   const start = SOURCE.split('\n').slice(0, line - 1).join('\n').length + (line > 1 ? 1 : 0);
   return [start, start + SOURCE.split('\n')[line - 1].length];
@@ -196,7 +195,6 @@ test('Move Line Down and Move Line Up keep the comments on both swapped lines', 
   const initial = resolveNotes(SOURCE, notes);
   const lines = SOURCE.split('\n');
 
-  // The changes VS Code sends for Alt+Down and Alt+Up on line 3.
   const down = track(initial, [
     { rangeOffset: span(3)[1], rangeLength: span(4)[1] - span(3)[1], text: '' },
     { rangeOffset: span(3)[0], rangeLength: 0, text: `${lines[3]}\n` },
@@ -247,14 +245,12 @@ test('saving keeps entries that still find their line and rewrites the rest', ()
   const notes = [createNote(SOURCE, 2, 'Read once.'), createNote(SOURCE, 4, 'Render last.')];
   const initial = resolveNotes(SOURCE, notes);
 
-  // A line inserted above both: they still find their lines, so nothing is written.
   const inserted = [{ rangeOffset: 0, rangeLength: 0, text: '// header\n' }];
   const moved = applyChanges(SOURCE, inserted);
   const kept = settleNotes(moved, trackEdits(SOURCE, moved, initial, inserted));
   assert.deepEqual(kept, notes);
   assert.deepEqual(resolveNotes(moved, kept).map(result => [result.line, result.status]), [[3, 'moved'], [5, 'moved']]);
 
-  // Editing the second comment's line rewrites it, and the first one's line number is brought up to date with it.
   const edited = [{ rangeOffset: moved.indexOf('render()'), rangeLength: 0, text: 'await ' }];
   const settled = settleNotes(applyChanges(moved, edited), trackEdits(moved, applyChanges(moved, edited), resolveNotes(moved, kept), edited));
   assert.deepEqual(settled.map(item => [item.line, item.state]), [[3, 'attached'], [5, 'review']]);

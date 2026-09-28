@@ -1,0 +1,6 @@
+# comment-sidecar v2
+--- javascript-files.js
++++ javascript-files.js.annotated
+@@ 7 @@ id=sc_520e87d7aa03 base=7aeb3364dfa56003a7f8f6151eca489fca31953a175adaea3943fcf02d268af5 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=836b05102420c2b853832bbf4336d33b1852aed76d36c8edee243c027fe27dd4 context=f416c7fac3f9f8a46d37a2a51ee0851272407de692ae23bc2178d6a88814243c
++// The JavaScript files that `npm run check` covers.

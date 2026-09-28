@@ -1,0 +1,9 @@
+# comment-sidecar v2
+--- note.js
++++ note.js.annotated
+@@ 10 @@ id=sc_c83e1ec6f061 base=1c08ade8ecf8045134a48b7615f11f2b4524be9929c331ebab0349180e23630b state=attached
+@anchor sha256 before=2 after=2 strong=1 target=cb9ee845654851e53a5c3eabccd013203563f61d95edd635ca1dc0713a25ce9d context=1b4fba50b07bec257c37a52cb8561aba2fd45b406748e8533c94a4b0bfa93aea
++// IDs never change, so lc_ IDs written before 1.1.0 stay valid.
+@@ 60 @@ id=sc_82d5a37f0c3b base=1c08ade8ecf8045134a48b7615f11f2b4524be9929c331ebab0349180e23630b state=attached
+@anchor sha256 before=2 after=2 strong=1 target=210014ad5286ff91d1dd4e1f2ae15cf8cf248f19800a6eeb152e2167ede2f7bf context=258d428b2ecabdc1ef0d7c80c8a1588776b30db6601ff7dc241dc777af8907a6
++// Like createNote, for callers that place many notes in the same source and split it once.

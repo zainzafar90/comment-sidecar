@@ -1,0 +1,6 @@
+# comment-sidecar v2
+--- rules.js
++++ rules.js.annotated
+@@ 5 @@ id=sc_51354bae27c3 base=525afc91f58390ae988b65a6333f496abd190d649b77cc68f05e599b413fb3ad state=attached
+@anchor sha256 before=2 after=2 strong=1 target=bcc5ac3a5277fcf2600df09394845fc6f35723a4d2e632d84aef1b3783d6d3b5 context=697ddc81efde9a892dfb9d17b11c2d86376b121dd66bf67ae513a44c3733dc5b
++// The agent instructions, with every `sidecar` command pointing at the given CLI invocation.

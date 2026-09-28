@@ -7,7 +7,6 @@ const MAX_NOTES = 1000;
 const MAX_COMMENT_CHARS = 16000;
 const PERSISTED_STATES = ['attached', 'review', 'detached'];
 const HASH = /^[a-f0-9]{64}$/;
-// IDs never change, so lc_ IDs written before 1.1.0 stay valid.
 const ID_PATTERN = '(?:sc|lc)_[a-zA-Z0-9_-]{1,64}';
 const ID = new RegExp(`^${ID_PATTERN}$`);
 
@@ -58,7 +57,6 @@ function createNote(source, line, text, options = {}) {
   return noteAt(linesOf(source), line, text, { ...options, base: options.base || sourceHash(source) });
 }
 
-// Like createNote, for callers that place many notes in the same source and split it once.
 function noteAt(lines, line, text, options) {
   assertLine(line, lines.length);
   return {

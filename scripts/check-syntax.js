@@ -6,7 +6,6 @@ const { javascriptFiles } = require('./javascript-files');
 const files = javascriptFiles();
 
 for (const file of files) {
-  // Compile each file as a CommonJS module body, as `node --check` does, without a process per file.
   const source = fs.readFileSync(file, 'utf8').replace(/^#!.*/, '');
   vm.compileFunction(source, ['exports', 'require', 'module', '__filename', '__dirname'], { filename: file });
 }

@@ -1,0 +1,21 @@
+# comment-sidecar v2
+--- check-style.js
++++ check-style.js.annotated
+@@ 8 @@ id=sc_a3dcd21d125a base=32a762aaac30602e6a6955c4e7e733fb100a54f51ec6b0fb2b83cfab8358f43d state=attached
+@anchor sha256 before=2 after=2 strong=1 target=9ab347ad950b3f3362c7e3c41e2401a9303c951a943c7facddfaf9f5aebca7a6 context=01c1ee53f32430709c911ed00db647a46360448756c07e0565fb653bacda3623
++// Keywords that take a block. Skipped after a dot, so `promise.catch(...)` is not a statement.
+@@ 130 @@ id=sc_63512f851d28 base=32a762aaac30602e6a6955c4e7e733fb100a54f51ec6b0fb2b83cfab8358f43d state=attached
+@anchor sha256 before=2 after=2 strong=1 target=86edaa89f0ef6e565527944bd06d03e30023306bf6f3ef9ac51ffbb5ea61d8f2 context=1ec9512397785a57e0760cb2bae51771fbe4d134c38607ed9f71cdb0b8fe91be
++// A slash starts a regular expression where an operand is expected, and divides after one.
+@@ 150 @@ id=sc_3d2844cc9259 base=32a762aaac30602e6a6955c4e7e733fb100a54f51ec6b0fb2b83cfab8358f43d state=attached
+@anchor sha256 before=2 after=2 strong=1 target=e3968cfb09d1f30c1b86e51f326be9ea1cc533fed1df16e714282c1a5e82a583 context=87a2e3b91bdc219e3458e28ce9baabe470e51e2700cceba4a8845b0a3a610f9d
++// The source with comments, strings, template literals and regular expressions blanked out, so the rules only see code. Every line and column stays where it was.
+@@ 186 @@ id=sc_a8b81802fa75 base=32a762aaac30602e6a6955c4e7e733fb100a54f51ec6b0fb2b83cfab8358f43d state=attached
+@anchor sha256 before=2 after=2 strong=1 target=71ef4a24c1e15e61227cfbd5a883a5a8aedb62e4a748f3ef8b831721c380e0f8 context=bdc60351842a956993c7aceeb94a11228eb79186c7b7fd9016416da4ecad67b5
++// The body of every `if`, loop and `try` is a block that starts a line of its own.
+@@ 207 @@ id=sc_8e9efc68f093 base=32a762aaac30602e6a6955c4e7e733fb100a54f51ec6b0fb2b83cfab8358f43d state=attached
+@anchor sha256 before=2 after=2 strong=1 target=14a4b6e86479d48ea5c06ecb0846f272921850528de3bee770ba9a537852640e context=139f90c8b17f5747baf68938cd906332c76934ce3178a92aa3ab245abe777a34
++// A semicolon that ends a statement is followed by nothing but closing brackets on its line.
+@@ 237 @@ id=sc_1e0a82eaf0d0 base=32a762aaac30602e6a6955c4e7e733fb100a54f51ec6b0fb2b83cfab8358f43d state=attached
+@anchor sha256 before=2 after=2 strong=1 target=ddfe98cc629c3a2b53628b43e91dddaf7c4e3b3360a9684fb89fbf29ef8ca9e7 context=b767da7ef3d7fa798729979882fd2e64241693e5c0b767a8cc02187de52a80b7
++// A second `?` before the expression ends, by `;` or `,` or a closing bracket, is nested or chained.

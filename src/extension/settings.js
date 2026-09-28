@@ -6,7 +6,6 @@ const definitions = Object.entries(properties).map(([name, schema]) => [
   name.slice('commentSidecar.'.length), schema,
 ]);
 
-// The manifest is the single source of defaults for both the editor and tests.
 function readSettings(configuration) {
   const settings = {};
   for (const [key, schema] of definitions) {

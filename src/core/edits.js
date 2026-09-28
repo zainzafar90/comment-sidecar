@@ -1,11 +1,8 @@
 'use strict';
 const { linesOf, lineOffsets, lineAtOffset } = require('./text');
 
-// Changed regions bigger than this (old lines × new lines) skip the full diff; their lines are paired by position or unique text.
 const MAX_DIFF_CELLS = 1_000_000;
 
-// Applied from the end of the document. At the same offset a deletion goes before an insertion, as VS Code sends
-// for Move Line Down on an empty line.
 function applyChanges(source, changes) {
   let result = source;
   for (const edit of [...changes].sort((a, b) => b.rangeOffset - a.rangeOffset || b.rangeLength - a.rangeLength)) {
@@ -25,19 +22,16 @@ function isValidEdit(edit, previousEnd, sourceLength) {
     && typeof edit.text === 'string';
 }
 
-// The old lines an edit rewrites, as [first, last]. last is first - 1 when whole lines are inserted between lines.
 function spanOf(offsets, edit) {
   const start = edit.rangeOffset;
   const end = start + edit.rangeLength;
   const atLineStart = offset => offsets[lineAtOffset(offsets, offset) - 1] === offset;
   const first = lineAtOffset(offsets, start);
   const endLine = lineAtOffset(offsets, end);
-  // The line that begins where the edit ends is untouched if the text before it still ends with a line break.
   const keepsEndLine = atLineStart(end) && (edit.text.endsWith('\n') || (!edit.text && atLineStart(start)));
   return [first, keepsEndLine ? endLine - 1 : endLine];
 }
 
-// Equal lines of a and b as [i, j] pairs in order: shared ends, then a longest common subsequence of the rest.
 function matchLines(a, b) {
   let head = 0;
   while (head < a.length && head < b.length && a[head] === b[head]) {
@@ -91,7 +85,6 @@ function matchLines(a, b) {
   return pairs;
 }
 
-// One region of old lines rewritten by overlapping edits, diffed against what replaced it.
 function diffRegion(oldSource, offsets, oldLines, region) {
   const start = offsets[region.first - 1];
   const hasLines = region.last >= region.first;
@@ -111,12 +104,10 @@ function diffRegion(oldSource, offsets, oldLines, region) {
 
   const before = hasLines ? oldLines.slice(region.first - 1, region.last) : [];
   const after = linesOf(text);
-  // Unless the region runs to the end of the file, it ends with a line break, which leaves an empty last entry.
   if ((!hasLines || region.last < offsets.length) && after.pop() !== '') {
     throw new Error('Editor changes do not end on a line break.');
   }
 
-  // Unmatched stretches of equal length were edited in place; the rest were removed or inserted.
   const matched = new Map();
   const edited = new Map();
   const removed = [];
@@ -148,7 +139,6 @@ function diffRegion(oldSource, offsets, oldLines, region) {
   return { ...region, before, after, matched, edited, removed: new Set(removed), inserted };
 }
 
-// Where each removed line went, if the same text was inserted exactly once elsewhere in this change and removed exactly once.
 function findMoves(regions) {
   const count = (map, text) => map.set(text, (map.get(text) || 0) + 1);
   const removedTexts = new Map();
@@ -168,7 +158,6 @@ function findMoves(regions) {
   return text => (removedTexts.get(text) === 1 && insertedTexts.get(text) === 1 ? insertedAt.get(text) : null);
 }
 
-// Where lines removed by an earlier change (a cut) were inserted again (a paste): the whole removed run, else the line alone.
 function findPaste(regions, removed) {
   const hits = [];
   for (const region of regions) {
@@ -208,9 +197,6 @@ function findPaste(regions, removed) {
   return single.length === 1 ? single[0] : null;
 }
 
-// Follows each comment through one editor change event. Lines are diffed only where the change touched them:
-// unchanged lines keep their comments, lines edited in place ask for review, and lines that were removed are
-// detached unless the same text reappears in this change (a moved line) or a later one (a cut and paste).
 function trackEdits(oldSource, newSource, results, changes) {
   const sorted = [...changes].sort((a, b) => a.rangeOffset - b.rangeOffset || a.rangeLength - b.rangeLength);
   let previousEnd = -1;
@@ -246,8 +232,6 @@ function trackEdits(oldSource, newSource, results, changes) {
 
   const regions = spans.map(span => diffRegion(oldSource, offsets, oldLines, span));
   regions.forEach((region, index) => {
-    // Copy Line Down inserts the copy above the original and moves the cursor down to the original. Counting the copy
-    // as inserted below keeps comments on the upper line, where the user still sees the original.
     const count = region.after.length;
     const next = regions[index + 1];
     const duplicates = region.last < region.first
@@ -323,7 +307,6 @@ function trackEdits(oldSource, newSource, results, changes) {
       return moved(destination, 'The line was moved; meaning is not verified.');
     }
 
-    // Remember the removed run, so a later paste of the same lines brings the comment back.
     let from = index;
     while (region.removed.has(from - 1)) {
       from--;

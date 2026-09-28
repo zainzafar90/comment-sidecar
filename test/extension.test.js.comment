@@ -1,0 +1,6 @@
+# comment-sidecar v2
+--- extension.test.js
++++ extension.test.js.annotated
+@@ 933 @@ id=sc_9fc158b1959f base=1f8c5308249fa290ef1d0646882f643559bfb05cd5c254b282181e8d4f1879a1 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=4f6fec642b17afea466b9e7cae4a28bd9858986116e9bd8e9b9c8ce558479e48 context=2c5ea14bd8d1fd3ad4fc86da06acf615c655064bdeb4b374175561484c392d90
++// Reject full-list scans specifically in the hover path.

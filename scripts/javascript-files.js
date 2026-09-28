@@ -4,7 +4,6 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 
-// The JavaScript files that `npm run check` covers.
 function javascriptFiles() {
   const files = [];
   const pending = ['src', 'test', 'scripts'].map(folder => path.join(root, folder));

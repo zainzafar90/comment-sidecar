@@ -1,7 +1,6 @@
 'use strict';
 const { hash } = require('./text');
 
-// Hash the exact lines, not normalized syntax; array encoding preserves boundaries.
 function contextHash(lines) { return hash(JSON.stringify(lines)); }
 
 function anchorAt(lines, line) {

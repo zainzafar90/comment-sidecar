@@ -1,0 +1,12 @@
+# comment-sidecar v2
+--- anchors.js
++++ anchors.js.annotated
+@@ 109 @@ id=sc_c5858d79bdc4 base=ebb56610e6020e0bd080989a513193893e0225c31b6feaaa4292e38880f4c3e7 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=f2d45174997ff5533a3149485ffc5ceb0fba3cffff3149e1f26e32c1f8bc12c1 context=c81d653bc2542ad227ecce981f42e657ec02aac7cd42b00c2d7ee6a5f35f118f
++// What a save writes. Entries that still find their line on their own are kept as they are, so edits elsewhere leave the .comment file, its diff and its merges alone. The rest are rebased; when any is, entries that only moved are rebased too, so the line numbers in the file stay in order.
+@@ 130 @@ id=sc_c7729e7687aa base=ebb56610e6020e0bd080989a513193893e0225c31b6feaaa4292e38880f4c3e7 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=19bf1abe648f5b557a6d857cc6012ed1eb58b043d367e353bfc9349238a2bf38 context=752ec12d005ccdc16610164e7df7c5f139288b8e1a1fa57136a7dea48047391f
++// Statuses that ask the user to look at a comment.
+@@ 132 @@ id=sc_9073c3393fe3 base=ebb56610e6020e0bd080989a513193893e0225c31b6feaaa4292e38880f4c3e7 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=44b62861287c71826c7f563a2b6074f286d836ee2ce8eecad4a026e7363760c7 context=80205d3cd0d63821fdf2ab10cd24c600ee0261f9c2f48bde7d9eee12140e071b
++// Attached results grouped by source line.

@@ -1,0 +1,6 @@
+# comment-sidecar v2
+--- test.js
++++ test.js.annotated
+@@ 14 @@ id=sc_cd296c6e13a1 base=b4cc61f9d08cee2c1dabc72ef2b022dc5290a09eec6a141cf79079e43c269ff5 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=73f792225645f691e971c2d2c5d9bb05710a03b785eeb85e06621b63648cfdd6 context=512805dff916fa3dfa46fc32fe3ad46815697a0e9eb318b4c1deb99320a83342
++// Pass explicit filenames rather than relying on a shell to expand a glob.

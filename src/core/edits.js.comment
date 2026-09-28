@@ -1,0 +1,42 @@
+# comment-sidecar v2
+--- edits.js
++++ edits.js.annotated
+@@ 4 @@ id=sc_e3f2701f7051 base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=e6f7e9532e5b33ee04b17deefe87ef0b3677d62a6a88a98151fc306b6b90770f context=7b3b27acd43079453a532b3f2b81b062ced80d22f8b5bdaa7abccdddb179d7e9
++// Changed regions bigger than this (old lines × new lines) skip the full diff; their lines are paired by position or unique text.
+@@ 6 @@ id=sc_9d0e103bca69 base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=b6804283830e4f1d32842f8897044afaeffb033fc880ccd87917ee9f2b843544 context=185cc76977b2346352c019957137459ffe932b214d315ad00df141f4c7d07931
++// Applied from the end of the document. At the same offset a deletion goes before an insertion, as VS Code sends for Move Line Down on an empty line.
+@@ 25 @@ id=sc_8d5434b9a0d8 base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=ccb55d0fdfe1ab74d2610530bbd76363f3e89f40ab79a7d7febb6687fece1567 context=5f7943f2f463d6c3f872e4cd121618b094af7393c8bb8631cfc6e0c19a70308a
++// The old lines an edit rewrites, as [first, last]. last is first - 1 when whole lines are inserted between lines.
+@@ 31 @@ id=sc_4a9c2a2e5886 base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=c25b22ed8b638f7fa14b41879adfe44f92d460a572bac2fb41765230abf6d0fe context=114534ae75eec57eb2eb5076555a9560d0d52ca1eb619c15e6d86ffef9f509b5
++// The line that begins where the edit ends is untouched if the text before it still ends with a line break.
+@@ 35 @@ id=sc_fb7b7784797b base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=57440a22cb705d5b5fd79bddf1afc6b4d8a6c854b795bdcf1618bf01f5858d2a context=3d62fc268d6980b315f0bd47cb060d0857dd742574e5a795397391f7cc840943
++// Equal lines of a and b as [i, j] pairs in order: shared ends, then a longest common subsequence of the rest.
+@@ 88 @@ id=sc_36e5c897dade base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=ff524025e31d796180fc85083fb93a64d78357e5ff0a9f4281fa7d9ac37cf082 context=8895594ffff353d0340d201b83df347bc1490aa5c3b159e632ae9736d20f4b94
++// One region of old lines rewritten by overlapping edits, diffed against what replaced it.
+@@ 107 @@ id=sc_5b90951686f3 base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=aba3a8a82389f22670d65a0ec789148f75bc2f25d0dc6f6f59372cab697b04c6 context=e8d7dcd2aecd39651e0ed68c5c800297278d3319befca5414e61a21fd830caea
++// Unless the region runs to the end of the file, it ends with a line break, which leaves an empty last entry.
+@@ 111 @@ id=sc_5a78d30f1dc1 base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=7167cf94a31c3b2dc786766863f4c0b3c01ebd6136797c32f5b558dcceae5fdf context=4c0e7921ae129ec345efbeb127452f20cca5f20dfee0fce9f8c5127dab61dfbe
++// Unmatched stretches of equal length were edited in place; the rest were removed or inserted.
+@@ 142 @@ id=sc_bc56c5fb4178 base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=ba0f3aeedf561e67d72a729e9f46816a639506729c43ac29f0fd270f0f53daa0 context=0890233b1d8dc34ed93b5ef51368a74c89120b9c65cf0ab1d73cb5a84ec3df08
++// Where each removed line went, if the same text was inserted exactly once elsewhere in this change and removed exactly once.
+@@ 161 @@ id=sc_5533b66d595e base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=5e1b724db5bc57e113a7e3952214fada5bf58d2e193939a86a68b0f8461e9987 context=ef8296e44a55d17e76020cc66dc11bb617d19877174622c7ee1b594731aca8e8
++// Where lines removed by an earlier change (a cut) were inserted again (a paste): the whole removed run, else the line alone.
+@@ 200 @@ id=sc_78971564c159 base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=13d962853eb8067bd79d7a2c64aee6c0613be7468414a093f6a3c8497237ce54 context=3dcb853db17176c37df2e2ab98c47f4c0a969d311dc52b28701f49fb65e83715
++// Follows each comment through one editor change event. Lines are diffed only where the change touched them: unchanged lines keep their comments, lines edited in place ask for review, and lines that were removed are detached unless the same text reappears in this change (a moved line) or a later one (a cut and paste).
+@@ 235 @@ id=sc_bf288a5b7644 base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=5d2f92999ce7d8a726376d74dac52619b013a3dbe8412e519dfc98e827bf9e79 context=1d9e33ca4ede0ac366fd15d8e389e1f1fa47b1a3e5006294e176aa3a1ba5bba9
++// Copy Line Down inserts the copy above the original and moves the cursor down to the original. Counting the copy as inserted below keeps comments on the upper line, where the user still sees the original.
+@@ 310 @@ id=sc_1ddd8403a7bb base=57fb77ddd9c00862bf80c19f48c1ae8647e6be9ee8e9dd8136c74972311acd4c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=048b70689aad23e44141260ae2575b2de005ed2ad912b11e7279681d95fef59b context=c52306df180a10e959ff712236f4988c9fcd3889e2d4bf5780d09ca7ae111f49
++// Remember the removed run, so a later paste of the same lines brings the comment back.

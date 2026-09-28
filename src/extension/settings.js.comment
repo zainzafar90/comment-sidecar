@@ -1,0 +1,6 @@
+# comment-sidecar v2
+--- settings.js
++++ settings.js.annotated
+@@ 9 @@ id=sc_ca0c5145ac15 base=61d99308c40bbcd1bfb367f4d3c7a945a059a13ea669854c540c2390359bff57 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=2dca1d15fc30244036cd831605e445cabab4a809fce0732277625d37b29d0753 context=aee8aa523a326c5ea9edea280b74f5dd34d406d1ce0c1197226c05d188035127
++// The manifest is the single source of defaults for both the editor and tests.

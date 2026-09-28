@@ -86,7 +86,7 @@ Each rule has tests. Keep them passing.
 - One statement per line. Braced, multi-line `if`, loops and `try`. No nested ternaries. `npm run check` enforces these three.
 - One blank line between top-level declarations, between class methods, and between the steps of a function. Keep a value together with the checks on it, and keep a run of guard clauses together.
 - Name real decisions (`findMoves`, `isValidEdit`). Do not add wrappers just to shorten code.
-- Comments explain a non-obvious reason. Do not narrate the code.
+- No comments in source. This repository keeps its code comments in `.comment` files, written with `node src/cli.js add` or the extension. A comment explains a non-obvious reason; it does not narrate the code.
 - No new dependencies without a strong reason.
 - `.editorconfig` sets indentation, line endings and the final newline in editors that support it.
 
@@ -127,7 +127,7 @@ What the tests do **not** prove: real VS Code or Cursor rendering, Windows or ma
 - both archives pass ZIP integrity checks;
 - the source ZIP matches the working tree byte for byte;
 - every runtime file in the VSIX matches the source, and every local `require()` resolves;
-- the VSIX has no tests, scripts, examples, reports or stale runtime files;
+- the VSIX has no tests, scripts, examples, reports, `.comment` files or stale runtime files;
 - the VSIX manifest version matches `package.json`.
 
 Rebuilding from an extracted source ZIP produces identical archives.

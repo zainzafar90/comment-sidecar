@@ -1,0 +1,6 @@
+# comment-sidecar v2
+--- check-syntax.js
++++ check-syntax.js.annotated
+@@ 9 @@ id=sc_21308858a244 base=776dc7935ff60058084e32105a5864dcdb8058ca9ea542e4611ff819fba6019c state=attached
+@anchor sha256 before=2 after=2 strong=1 target=02c461da297228363fe9b8042ed2878cc5467389027b600ddbad6f0ef12f93e1 context=bec97dcb366f71bae99bf622a584d9deccbe335579ff586054a9491af387a453
++// Compile each file as a CommonJS module body, as `node --check` does, without a process per file.

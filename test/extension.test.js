@@ -930,7 +930,6 @@ test('a saved source reuses the service resolution and line lookup groups same-l
   assert.equal(entry.byLine.size, 1);
   assert.equal(entry.byLine.get(2).length, 2);
 
-  // Reject full-list scans specifically in the hover path.
   entry.results.filter = () => {
     throw new Error('Hover scanned all annotations.');
   };

@@ -106,9 +106,6 @@ function rebaseNotes(source, results) {
   });
 }
 
-// What a save writes. Entries that still find their line on their own are kept as they are, so edits elsewhere
-// leave the .comment file, its diff and its merges alone. The rest are rebased; when any is, entries that only
-// moved are rebased too, so the line numbers in the file stay in order.
 function settleNotes(source, results) {
   const alone = resolveNotes(source, results.map(result => result.note));
   const keeps = results.map((result, i) => {
@@ -130,10 +127,8 @@ function settleNotes(source, results) {
   });
 }
 
-// Statuses that ask the user to look at a comment.
 const NEEDS_ATTENTION = ['review', 'ambiguous', 'detached'];
 
-// Attached results grouped by source line.
 function indexResults(results) {
   const byLine = new Map();
   for (const result of results) {

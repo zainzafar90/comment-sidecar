@@ -1,5 +1,4 @@
 'use strict';
-// A source file's comments live in a sibling file: app.tsx → app.tsx.comment.
 const SUFFIX = '.comment';
 
 function sidecarOf(sourcePath) {

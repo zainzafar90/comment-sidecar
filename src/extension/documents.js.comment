@@ -1,0 +1,6 @@
+# comment-sidecar v2
+--- documents.js
++++ documents.js.annotated
+@@ 65 @@ id=sc_749db2edc96a base=de01765e64cd588235c3c2a8bc869c563d38c99a07a1ef3a51453067258b9b40 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=2fdd8eecc875ccfbd5c57e32edf9ae71e2b0cb09cbd5f8287e8e6ef7290e2747 context=4e3ccbebb896763eccef8a3430f3262bc19234335d300291062312360a363150
++// No sidecar file, so there is nothing to rename.

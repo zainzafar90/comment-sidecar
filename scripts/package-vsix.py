@@ -25,7 +25,7 @@ icon_metadata = f"\n    <Icon>extension/{escape(icon)}</Icon>" if icon else ''
 icon_asset = f'\n    <Asset Type="Microsoft.VisualStudio.Services.Icons.Default" Path="extension/{escape(icon)}" Addressable="true" />' if icon else ''
 files = [root / 'package.json', root / 'README.md', root / 'LICENSE']
 for folder in ['src', 'media', 'integration']:
-    files.extend(path for path in (root / folder).rglob('*') if path.is_file())
+    files.extend(path for path in (root / folder).rglob('*') if path.is_file() and path.suffix != '.comment')
 files.extend(root / name for name in ['FORMAT.md', 'SECURITY.md'] if (root / name).exists())
 suffixes = sorted({file.suffix for file in files if file.suffix})
 unknown = [suffix for suffix in suffixes if suffix not in MEDIA_TYPES]

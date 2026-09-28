@@ -32,12 +32,10 @@ function createHighlights() {
         const state = items.some(item => item.status === 'review') ? 'review' : 'highlight';
         const sourceLine = editor.document.lineAt(line - 1);
         const first = style === 'underline' ? Math.max(0, sourceLine.text.search(/\S/)) : 0;
-        // Range[] permits empty positions for whole-line decorations on blank lines.
         const range = new vscode.Range(line - 1, first, line - 1, sourceLine.text.length);
         ranges.get(`${style}:${state}`).push(range);
       }
 
-      // Clear inactive styles too, including when comments are removed or moved.
       for (const [key, type] of types) {
         editor.setDecorations(type, ranges.get(key));
       }

@@ -11,7 +11,6 @@ const tests = fs.readdirSync(path.join(root, 'test'))
   .sort()
   .map(name => path.join(root, 'test', name));
 
-// Pass explicit filenames rather than relying on a shell to expand a glob.
 const result = spawnSync(process.execPath, ['--test', ...tests], {
   cwd: root,
   stdio: 'inherit',

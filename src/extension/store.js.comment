@@ -1,0 +1,6 @@
+# comment-sidecar v2
+--- store.js
++++ store.js.annotated
+@@ 16 @@ id=sc_64589b83d2a1 base=88fdbdcd3eb2fa9eac44bfbb9da1716600ca02326ca84417d227388bdb8dc1f8 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=fbf9bc3e9e92f3b836126219925151aa9fb854b7f282563b94a6e8814b07a465 context=4a126c1f24352ab4704f9ec8d39eab549c3d6019a7b52c4ac4d7faa12b779c1e
++// A comment detached by a cut stays ready to follow the paste, even if the file is saved in between.

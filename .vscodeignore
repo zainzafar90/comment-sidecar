@@ -8,6 +8,7 @@ node_modules/**
 dist/**
 reports/**
 examples/**
+**/*.comment
 DEVELOPMENT.md
 AGENTS.md
 .gitignore

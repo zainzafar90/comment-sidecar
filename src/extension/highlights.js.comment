@@ -1,0 +1,9 @@
+# comment-sidecar v2
+--- highlights.js
++++ highlights.js.annotated
+@@ 35 @@ id=sc_5f1d438dc128 base=5df437175471f1f388edea529a1118abbee8840895c078ea4cf71f6aaa508b0a state=attached
+@anchor sha256 before=2 after=2 strong=1 target=d985259957d57789fd8001ddcd54767b1c9749e79b3a4ff2ebc3ce3b75194537 context=5d25b193ffdaa80ccad3d44e6bac32b2d3ce01a26b8b98b3abe025c117c7c71d
++// Range[] permits empty positions for whole-line decorations on blank lines.
+@@ 39 @@ id=sc_59eaed0b5f62 base=5df437175471f1f388edea529a1118abbee8840895c078ea4cf71f6aaa508b0a state=attached
+@anchor sha256 before=2 after=2 strong=1 target=575aa9133416b9aa32cc9192dd0ff0b402c5ebc85ab49c9fc7cd6bb273c53f4c context=36dbf4549239688920fb71d44b96ac0cac5dee60235600ec8791286b0cfc7d3f
++// Clear inactive styles too, including when comments are removed or moved.

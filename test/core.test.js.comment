@@ -1,0 +1,15 @@
+# comment-sidecar v2
+--- core.test.js
++++ core.test.js.annotated
+@@ 184 @@ id=sc_be7bd3123a19 base=578067eceac6453b6b9a0b36fc57ad474ba943d587bcb5d55d8eef688e0d5678 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=e3d8587dbd8da533e5451ad1daf36a89ac8d05cf6a17fbed5912f4e50ef704c9 context=8a1b75c9eefa50d1e8c357f46869db1839bdad463d32f83ec7fb54cef63197a1
++// Offsets of a SOURCE line: [start, end before its line break].
+@@ 198 @@ id=sc_4adcd9af41e0 base=578067eceac6453b6b9a0b36fc57ad474ba943d587bcb5d55d8eef688e0d5678 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=9d0e80e6b06167284be8c8ea390f7750c9fd173a7d884f5ead60b85aa9635269 context=dc7415e4f67d295bf954f8a60da9d36c84c155adfdb8ab60c395f1b06571f018
++// The changes VS Code sends for Alt+Down and Alt+Up on line 3.
+@@ 248 @@ id=sc_e136cc80614d base=578067eceac6453b6b9a0b36fc57ad474ba943d587bcb5d55d8eef688e0d5678 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=188000eb7200ab64c2e019e83ad00799ee26c02d013591afb4fc7b472ed9d124 context=88e00ea6d3b03ee8de8af38cd57cc5b98b4110c10e7a648c5edad595ce608f9f
++// A line inserted above both: they still find their lines, so nothing is written.
+@@ 254 @@ id=sc_77f54d490ac9 base=578067eceac6453b6b9a0b36fc57ad474ba943d587bcb5d55d8eef688e0d5678 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=d3e73bfe014e961aceb7c01430d701c0dd30416438e852c4e429f32839687cfd context=c2a04a43cb972309ab93d86ebcf9a713ff3fb702e9ffcd96055badaab9b68297
++// Editing the second comment's line rewrites it, and the first one's line number is brought up to date with it.

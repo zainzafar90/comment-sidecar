@@ -13,7 +13,6 @@ function setResults(entry, results) {
   entry.byLine = indexResults(results);
 }
 
-// A comment detached by a cut stays ready to follow the paste, even if the file is saved in between.
 function keepRemoved(previous, results) {
   const removed = new Map(previous.filter(result => result.removed).map(result => [result.note.id, result.removed]));
   return results.map(result => {

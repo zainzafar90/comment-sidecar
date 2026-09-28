@@ -1,0 +1,6 @@
+# comment-sidecar v2
+--- commands.js
++++ commands.js.annotated
+@@ 43 @@ id=sc_d3f904206ee1 base=e49524dc71c1e2f2d7372d0c36da685f0eb7fb55c5f2e2f2a1fe15657b1b4395 state=attached
+@anchor sha256 before=2 after=2 strong=1 target=9b93ef2ea3b8554eb296fea0c5c65a4d4ebd1f4f90527979de7722e62607d194 context=12e6a3b8715a9ab57ad1ae5d00208271d5cbc5f7b44a1e324bb63dbc187dbe4b
++// Workspace-wide commands need a folder, not an open source file.
