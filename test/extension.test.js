@@ -8,6 +8,8 @@ const Module = require('node:module');
 const { pathToFileURL, fileURLToPath } = require('node:url');
 const service = require('../src/node/service');
 const { sourceHash } = require('../src/core/text');
+const { createNote } = require('../src/core/note');
+const { serialize } = require('../src/core/format');
 
 class Disposable {
   constructor(action = () => {}) {
@@ -126,6 +128,23 @@ const vscode = {
       this.id = id;
     }
   },
+  TreeItem: class {
+    constructor(label, collapsibleState) {
+      this.label = label;
+      this.collapsibleState = collapsibleState;
+      this.description = undefined;
+      this.tooltip = undefined;
+      this.iconPath = undefined;
+      this.contextValue = undefined;
+      this.command = undefined;
+    }
+  },
+  TreeItemCollapsibleState: { None: 0, Collapsed: 1, Expanded: 2 },
+  ThemeIcon: class {
+    constructor(id) {
+      this.id = id;
+    }
+  },
   Hover: class {
     constructor(contents, range) {
       this.contents = contents;
@@ -166,7 +185,14 @@ const vscode = {
       commands.set(name, fn);
       return new Disposable(() => commands.delete(name));
     },
-    executeCommand: async () => {},
+    executeCommand: async (name, ...args) => {
+      vscode.executed = [...(vscode.executed || []), name];
+      const handler = commands.get(name);
+      if (handler) {
+        return handler(...args);
+      }
+      return undefined;
+    },
   },
   languages: {
     createDiagnosticCollection() {
@@ -279,6 +305,18 @@ const vscode = {
       vscode.status = item;
       return item;
     },
+    createTreeView(viewId, options) {
+      const view = {
+        viewId,
+        options,
+        message: undefined,
+        badge: undefined,
+        reveal: () => {},
+        dispose() {},
+      };
+      vscode.reviewViews = [...(vscode.reviewViews || []), view];
+      return view;
+    },
     onDidChangeActiveTextEditor: event('active'),
     onDidChangeVisibleTextEditors: event('visible'),
     registerFileDecorationProvider(provider) {
@@ -287,7 +325,10 @@ const vscode = {
         fileDecorationProviders.splice(fileDecorationProviders.indexOf(provider), 1),
       );
     },
-    showInformationMessage: async () => {},
+    showInformationMessage: async (message, ...items) => {
+      vscode.infoMessages = [...(vscode.infoMessages || []), { message, items }];
+      return vscode.infoChoice === undefined ? undefined : items[vscode.infoChoice];
+    },
     showErrorMessage: async message => {
       vscode.lastError = message;
     },
@@ -338,8 +379,21 @@ function makeEditor(document) {
       this.decorations = options;
       this.decorationSets.set(type, options);
     },
-    revealRange() {},
+    revealRange(range) {
+      this.revealedRange = range;
+    },
   };
+}
+
+async function waitFor(predicate, timeoutMs = 2000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (predicate()) {
+      return true;
+    }
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+  return predicate();
 }
 
 const originalLoad = Module._load;
@@ -391,7 +445,7 @@ async function setup(t, options = {}) {
 test('extension registers commands, hover, multiline draft filesystem and preview provider', async t => {
   await setup(t);
 
-  assert.equal(commands.size, 12);
+  assert.equal(commands.size, 17);
   const manifest = require('../package.json').contributes.commands.map(item => item.command).sort();
   assert.deepEqual([...commands.keys()].sort(), manifest);
   assert.ok(hoverProviders.length > 0);
@@ -1054,4 +1108,379 @@ test('manifest contributes the sidecar color with a theme-aware default', () => 
     highContrast: 'disabledForeground',
     highContrastLight: 'disabledForeground',
   });
+});
+
+test('review.hold marks a review comment attached and leaves source untouched', async t => {
+  const { root, document } = await setup(t);
+  const source = document.getText();
+  const note = createNote(source, 2, 'Wait before starting.');
+  await fs.writeFile(path.join(root, 'app.ts.comment'), serialize('app.ts', [note]));
+
+  const changed = source.split('\n');
+  changed[0] = 'const ready = true;';
+  await fs.writeFile(path.join(root, 'app.ts'), changed.join('\n'));
+  const sourceBefore = await fs.readFile(path.join(root, 'app.ts'), 'utf8');
+
+  vscode.lastError = undefined;
+  await commands.get('commentSidecar.review.hold')({
+    sourcePath: path.join(root, 'app.ts'),
+    file: 'app.ts',
+    id: note.id,
+    line: 2,
+    previousLine: 2,
+    status: 'review',
+    reason: 'test',
+    text: note.text,
+  });
+
+  assert.equal(vscode.lastError, undefined);
+  assert.equal(await fs.readFile(path.join(root, 'app.ts'), 'utf8'), sourceBefore);
+
+  const snapshot = await service.load(root, 'app.ts');
+  const result = snapshot.results.find(item => item.note.id === note.id);
+  assert.ok(result);
+  assert.equal(result.status, 'attached');
+});
+
+test('review.reattach reanchors a detached comment at the cursor line', async t => {
+  const { root, document } = await setup(t);
+  const source = document.getText();
+  const note = createNote(source, 2, 'Wait before starting.');
+  await fs.writeFile(path.join(root, 'app.ts.comment'), serialize('app.ts', [note]));
+
+  const changed = 'const ready = false;\nstart();\n';
+  await fs.writeFile(path.join(root, 'app.ts'), changed);
+  document.text = changed;
+
+  vscode.infoChoice = 0;
+  vscode.lastError = undefined;
+  await commands.get('commentSidecar.review.reattach')({
+    sourcePath: path.join(root, 'app.ts'),
+    file: 'app.ts',
+    id: note.id,
+    line: null,
+    previousLine: 2,
+    status: 'detached',
+    reason: 'test',
+    text: note.text,
+  });
+
+  assert.equal(vscode.lastError, undefined);
+  assert.equal(await fs.readFile(path.join(root, 'app.ts'), 'utf8'), changed);
+
+  const snapshot = await service.load(root, 'app.ts');
+  const result = snapshot.results.find(item => item.note.id === note.id);
+  assert.ok(result);
+  assert.equal(result.status, 'attached');
+  assert.equal(result.line, 2);
+});
+
+test('review.open reveals the annotated line and shows hover', async t => {
+  const { root } = await setup(t);
+  vscode.executed = undefined;
+  await commands.get('commentSidecar.review.open')({
+    sourcePath: path.join(root, 'app.ts'),
+    file: 'app.ts',
+    id: 'sc_x',
+    line: 2,
+    previousLine: 2,
+    status: 'review',
+    reason: 'test',
+    text: 'note',
+  });
+  assert.ok((vscode.executed || []).includes('editor.action.showHover'));
+  assert.equal(vscode.window.activeTextEditor.selection.active.line, 1);
+  assert.ok(vscode.window.activeTextEditor.revealedRange);
+});
+
+test('manifest declares the activity-bar container and the Review view', () => {
+  const manifest = require('../package.json').contributes;
+  assert.ok(manifest.viewsContainers.activitybar.some(container => container.id === 'commentSidecar'));
+  assert.ok(manifest.views.commentSidecar.some(view => view.id === 'commentSidecar.review'));
+});
+
+test('manifest menus gate review actions to view, viewItem and workspace trust', () => {
+  const menus = require('../package.json').contributes.menus;
+  const hold = menus['view/item/context'].find(item => item.command === 'commentSidecar.review.hold');
+  assert.equal(hold.when, 'view == commentSidecar.review && viewItem == commentSidecar.reviewItem && isWorkspaceTrusted');
+  const refresh = menus['view/title'].find(item => item.command === 'commentSidecar.review.refresh');
+  assert.ok(refresh);
+  const hidden = menus.commandPalette.find(item => item.command === 'commentSidecar.review.open');
+  assert.equal(hidden.when, 'false');
+});
+
+test('rescan syncs the review view badge and message', async t => {
+  const { root, document, api } = await setup(t);
+  const source = document.getText();
+  const note = createNote(source, 2, 'Wait before starting.');
+  await fs.writeFile(path.join(root, 'app.ts.comment'), serialize('app.ts', [note]));
+  const changed = source.split('\n');
+  changed[0] = 'const ready = true;';
+  await fs.writeFile(path.join(root, 'app.ts'), changed.join('\n'));
+  document.text = changed;
+  api.store.invalidate(vscode.Uri.file(path.join(root, 'app.ts')));
+
+  api.scheduleRescan();
+  await waitFor(() => api.reviewTree.entries.length === 1);
+
+  assert.equal(api.reviewTree.entries.length, 1);
+  assert.equal(api.reviewView.badge.value, 1);
+  assert.equal(api.reviewView.message, undefined);
+});
+
+test('review.hold rejects a detached comment without writing', async t => {
+  const { root } = await setup(t);
+  const before = await fs.readFile(path.join(root, 'app.ts'), 'utf8');
+  vscode.lastError = undefined;
+  await commands.get('commentSidecar.review.hold')({
+    sourcePath: path.join(root, 'app.ts'),
+    file: 'app.ts',
+    id: 'sc_x',
+    line: null,
+    previousLine: 2,
+    status: 'detached',
+    reason: 'test',
+    text: 'note',
+  });
+  assert.equal(vscode.lastError, 'Comment Sidecar: Only comments that need review can be marked as still holding.');
+  assert.equal(await fs.readFile(path.join(root, 'app.ts'), 'utf8'), before);
+});
+
+test('review.reattach writes nothing when the toast is dismissed', async t => {
+  const { root, document } = await setup(t);
+  const source = document.getText();
+  const note = createNote(source, 2, 'Wait before starting.');
+  await fs.writeFile(path.join(root, 'app.ts.comment'), serialize('app.ts', [note]));
+  const changed = 'const ready = false;\nstart();\n';
+  await fs.writeFile(path.join(root, 'app.ts'), changed);
+  document.text = changed;
+
+  vscode.infoChoice = undefined;
+  vscode.lastError = undefined;
+  await commands.get('commentSidecar.review.reattach')({
+    sourcePath: path.join(root, 'app.ts'),
+    file: 'app.ts',
+    id: note.id,
+    line: null,
+    previousLine: 2,
+    status: 'detached',
+    reason: 'test',
+    text: note.text,
+  });
+
+  assert.equal(vscode.lastError, undefined);
+  const snapshot = await service.load(root, 'app.ts');
+  const result = snapshot.results.find(item => item.note.id === note.id);
+  assert.equal(result.status, 'detached');
+});
+
+test('review.hold rejects when the workspace is not trusted', async t => {
+  const { root } = await setup(t);
+  vscode.workspace.isTrusted = false;
+  vscode.lastError = undefined;
+  await commands.get('commentSidecar.review.hold')({
+    sourcePath: path.join(root, 'app.ts'),
+    file: 'app.ts',
+    id: 'sc_x',
+    line: 2,
+    previousLine: 2,
+    status: 'review',
+    reason: 'test',
+    text: 'note',
+  });
+  assert.equal(vscode.lastError, 'Comment Sidecar: Trust this workspace before changing comments.');
+  vscode.workspace.isTrusted = true;
+});
+
+test('manifest hides review commands from the palette except refresh and has no viewsWelcome', () => {
+  const manifest = require('../package.json').contributes;
+  for (const name of ['open', 'hold', 'edit', 'reattach']) {
+    const item = manifest.menus.commandPalette.find(entry => entry.command === `commentSidecar.review.${name}`);
+    assert.equal(item.when, 'false');
+  }
+  assert.equal(manifest.menus.commandPalette.some(entry => entry.command === 'commentSidecar.review.refresh'), false);
+  assert.equal(manifest.viewsWelcome, undefined);
+});
+
+test('status bar item focuses the Review view', async t => {
+  await setup(t);
+  assert.equal(vscode.status.command, 'commentSidecar.review.focus');
+});
+
+test('live edit marks an annotated line for review', async t => {
+  const { root, document, api } = await setup(t);
+  const source = document.getText();
+  const note = createNote(source, 2, 'Wait before starting.');
+  await fs.writeFile(path.join(root, 'app.ts.comment'), serialize('app.ts', [note]));
+  await api.store.get(document);
+
+  const target = 'if (!ready) wait();';
+  const offset = source.indexOf(target);
+  document.text = source.replace(target, 'if (!ready) start();');
+  await events['change'].fire({
+    document,
+    contentChanges: [{ rangeOffset: offset, rangeLength: target.length, text: 'if (!ready) start();' }],
+  });
+
+  const entry = api.store.cache.get(document.uri.toString());
+  const result = entry.results.find(item => item.note.id === note.id);
+  assert.equal(result.status, 'review');
+});
+
+test('sidecar watcher event triggers a rescan that populates the tree', async t => {
+  const { root, document, api } = await setup(t);
+  const source = document.getText();
+  const note = createNote(source, 2, 'Wait before starting.');
+  await fs.writeFile(path.join(root, 'app.ts.comment'), serialize('app.ts', [note]));
+  const changed = source.split('\n');
+  changed[0] = 'const ready = true;';
+  await fs.writeFile(path.join(root, 'app.ts'), changed.join('\n'));
+  document.text = changed.join('\n');
+  api.store.invalidate(vscode.Uri.file(path.join(root, 'app.ts')));
+
+  await events['sidecarCreate'].fire(vscode.Uri.file(path.join(root, 'app.ts.comment')));
+  await waitFor(() => api.reviewTree.entries.length === 1);
+
+  assert.equal(api.reviewTree.entries.length, 1);
+  assert.equal(api.reviewView.badge.value, 1);
+});
+
+test('review tree view is registered with the correct view id', async t => {
+  const { api } = await setup(t);
+  assert.equal(api.reviewView.viewId, 'commentSidecar.review');
+  assert.ok(vscode.reviewViews.some(view => view.viewId === 'commentSidecar.review'));
+});
+
+test('store ignores non-file documents', async t => {
+  const { api } = await setup(t);
+  assert.equal(api.store.supports({ uri: { scheme: 'untitled', fsPath: '' } }), false);
+  assert.equal(api.store.supports({ uri: { scheme: 'file', fsPath: '/tmp/x.ts.comment' } }), false);
+});
+
+test('review.edit opens a draft for the comment', async t => {
+  const { root, document } = await setup(t);
+  const source = document.getText();
+  const note = createNote(source, 2, 'Wait before starting.');
+  await fs.writeFile(path.join(root, 'app.ts.comment'), serialize('app.ts', [note]));
+
+  await commands.get('commentSidecar.review.edit')({
+    sourcePath: path.join(root, 'app.ts'),
+    file: 'app.ts',
+    id: note.id,
+    line: 2,
+    previousLine: 2,
+    status: 'review',
+    reason: 'test',
+    text: note.text,
+  });
+
+  assert.equal(vscode.window.activeTextEditor.document.uri.scheme, 'comment-sidecar-draft');
+});
+
+test('review.hold rejects an unknown comment id without writing', async t => {
+  const { root, document } = await setup(t);
+  const source = document.getText();
+  const note = createNote(source, 2, 'Wait before starting.');
+  await fs.writeFile(path.join(root, 'app.ts.comment'), serialize('app.ts', [note]));
+  const sidecarBefore = await fs.readFile(path.join(root, 'app.ts.comment'), 'utf8');
+
+  vscode.lastError = undefined;
+  await commands.get('commentSidecar.review.hold')({
+    sourcePath: path.join(root, 'app.ts'),
+    file: 'app.ts',
+    id: 'sc_unknown_xyz',
+    line: 2,
+    previousLine: 2,
+    status: 'review',
+    reason: 'test',
+    text: 'note',
+  });
+
+  assert.equal(vscode.lastError, 'Comment Sidecar: Unknown comment ID.');
+  assert.equal(await fs.readFile(path.join(root, 'app.ts.comment'), 'utf8'), sidecarBefore);
+});
+
+test('review.open on a detached comment reveals previousLine and shows no hover', async t => {
+  const { root } = await setup(t);
+  vscode.infoMessages = undefined;
+  vscode.executed = undefined;
+  await commands.get('commentSidecar.review.open')({
+    sourcePath: path.join(root, 'app.ts'),
+    file: 'app.ts',
+    id: 'sc_x',
+    line: null,
+    previousLine: 2,
+    status: 'detached',
+    reason: 'test',
+    text: 'note',
+  });
+  assert.equal((vscode.executed || []).includes('editor.action.showHover'), false);
+  assert.equal(vscode.infoMessages.length, 1);
+  assert.equal(vscode.window.activeTextEditor.selection.active.line, 1);
+});
+
+test('review.open surfaces an error for a missing file', async t => {
+  const { root } = await setup(t);
+  vscode.lastError = undefined;
+  await commands.get('commentSidecar.review.open')({
+    sourcePath: path.join(root, 'nonexistent.ts'),
+    file: 'nonexistent.ts',
+    id: 'sc_x',
+    line: 1,
+    previousLine: 1,
+    status: 'review',
+    reason: 'test',
+    text: 'note',
+  });
+  assert.ok(String(vscode.lastError).startsWith('Comment Sidecar: '));
+});
+
+test('review.hold re-resolves the current line, ignoring a stale tree line', async t => {
+  const { root, document } = await setup(t);
+  const source = document.getText();
+  const note = createNote(source, 2, 'Wait before starting.');
+  await fs.writeFile(path.join(root, 'app.ts.comment'), serialize('app.ts', [note]));
+  const changed = source.split('\n');
+  changed[0] = 'const ready = true;';
+  await fs.writeFile(path.join(root, 'app.ts'), changed.join('\n'));
+
+  vscode.lastError = undefined;
+  await commands.get('commentSidecar.review.hold')({
+    sourcePath: path.join(root, 'app.ts'),
+    file: 'app.ts',
+    id: note.id,
+    line: 99,
+    previousLine: 2,
+    status: 'review',
+    reason: 'test',
+    text: note.text,
+  });
+
+  assert.equal(vscode.lastError, undefined);
+  const snapshot = await service.load(root, 'app.ts');
+  const result = snapshot.results.find(item => item.note.id === note.id);
+  assert.equal(result.status, 'attached');
+  assert.equal(result.line, 2);
+});
+
+test('editing an annotated line live-updates the review tree and badge', async t => {
+  const { root, document, api } = await setup(t);
+  const source = document.getText();
+  const note = createNote(source, 2, 'Wait before starting.');
+  await fs.writeFile(path.join(root, 'app.ts.comment'), serialize('app.ts', [note]));
+  await api.store.get(document);
+  await api.reviewTree.rescan(); // populate sidecarFiles so the live entry is kept
+
+  const target = 'if (!ready) wait();';
+  const offset = source.indexOf(target);
+  document.text = source.replace(target, 'if (!ready) start();');
+  await events['change'].fire({
+    document,
+    contentChanges: [{ rangeOffset: offset, rangeLength: target.length, text: 'if (!ready) start();' }],
+  });
+  await waitFor(() => api.reviewTree.entries.length === 1 && api.reviewView.badge.value === 1);
+
+  assert.equal(api.reviewTree.entries.length, 1);
+  assert.equal(api.reviewTree.entries[0].status, 'review');
+  assert.equal(api.reviewView.badge.value, 1);
 });

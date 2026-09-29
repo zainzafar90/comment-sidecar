@@ -163,6 +163,17 @@ class Store {
 
     this.cache.delete(key);
   }
+  liveEntries() {
+    const entries = [];
+    for (const entry of this.cache.values()) {
+      entries.push({
+        sourcePath: entry.snapshot.sourcePath,
+        file: entry.snapshot.file,
+        results: entry.results,
+      });
+    }
+    return entries;
+  }
 
   close(document) {
     this.cache.delete(document.uri.toString());

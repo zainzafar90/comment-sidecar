@@ -11,6 +11,8 @@ const { readSettings } = require('./settings');
 const { render } = require('../core/render');
 const { matchingDocuments, sidecarRenameEdit } = require('./documents');
 const { registerCommands } = require('./commands');
+const { ReviewTreeDataProvider } = require('./review-tree');
+const { registerReviewCommands } = require('./review-commands');
 const { SUFFIX, isSidecar, sourceOf } = require('../core/sidecar');
 
 function activate(context) {
@@ -23,7 +25,7 @@ function activate(context) {
   });
   const highlights = createHighlights();
   const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 30);
-  status.command = 'commentSidecar.list';
+  status.command = 'commentSidecar.review.focus';
 
   const timers = new Map();
   const log = error => output.appendLine(`[${new Date().toISOString()}] ${error.message || error}`);
@@ -35,6 +37,8 @@ function activate(context) {
       timers.delete(key);
       void refresh(uri);
       previewEvents.fire(previewUri(uri));
+      reviewTree.refresh();
+      syncTreeViewState();
     }, 100));
   }
 
@@ -55,6 +59,26 @@ function activate(context) {
     path: `/${path.basename(uri.fsPath)}.txt`,
     query: encodeURIComponent(uri.toString()),
   });
+
+  const reviewTree = new ReviewTreeDataProvider(store, log);
+  const reviewView = vscode.window.createTreeView('commentSidecar.review', { treeDataProvider: reviewTree });
+
+  let rescanTimer;
+  function scheduleRescan() {
+    clearTimeout(rescanTimer);
+    rescanTimer = setTimeout(async () => {
+      await reviewTree.rescan();
+      syncTreeViewState();
+    }, 300);
+  }
+
+  function syncTreeViewState() {
+    const total = reviewTree.entries.length;
+    reviewView.message = total === 0
+      ? 'No comments need review. Add a comment (Ctrl+Alt+; / Cmd+Alt+;) or edit an annotated line, and it will be flagged here.'
+      : undefined;
+    reviewView.badge = total > 0 ? { value: total, tooltip: `${total} comments need review` } : undefined;
+  }
 
   function clearPresentation(uri) {
     diagnostics.delete(uri);
@@ -120,13 +144,15 @@ function activate(context) {
   }
 
   registerCommands(context, { store, drafts, output, log, updated, previewUri });
+  registerReviewCommands(context, { store, drafts, updated, log, scheduleRescan });
 
   context.subscriptions.push(
-    output, diagnostics, previewEvents, decoration, highlights, status, drafts,
+    output, diagnostics, previewEvents, decoration, highlights, status, drafts, reviewView,
     new vscode.Disposable(() => {
       for (const timer of timers.values()) {
         clearTimeout(timer);
       }
+        clearTimeout(rescanTimer);
     }),
     vscode.workspace.registerFileSystemProvider('comment-sidecar-draft', drafts, { isCaseSensitive: true }),
     vscode.window.registerFileDecorationProvider({ provideFileDecoration: sidecarDecoration }),
@@ -222,12 +248,15 @@ function activate(context) {
     watcher.onDidChange(changedSidecar),
     watcher.onDidCreate(changedSidecar),
     watcher.onDidDelete(changedSidecar),
+    watcher.onDidChange(() => scheduleRescan()),
+    watcher.onDidCreate(() => scheduleRescan()),
+    watcher.onDidDelete(() => scheduleRescan()),
   );
   for (const editor of vscode.window.visibleTextEditors) {
     updated(editor.document.uri);
   }
-
-  return { store, drafts, refresh };
+  scheduleRescan();
+  return { store, drafts, refresh, reviewTree, reviewView, scheduleRescan };
 }
 
 function deactivate() {}

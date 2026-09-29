@@ -135,6 +135,12 @@ Everything lives in the Command Palette under **Comment Sidecar:**.
 | **Copy Agent Instructions** | See [For AI agents](#for-ai-agents). |
 | **Copy Cursor MCP Configuration** | See [For AI agents](#for-ai-agents). |
 
+The **Review** activity-bar view groups comments that need attention into
+**Needs review**, **Detached**, and **Ambiguous**, with a workspace-total badge.
+Click an item to jump to its line; use the inline actions **Still holds**,
+**Update**, and **Reattach** to resolve it. **Refresh Review** re-scans the
+workspace.
+
 ## Settings
 
 | Setting | Default | Options |

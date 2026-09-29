@@ -47,6 +47,9 @@ src/extension/   VS Code integration.
   extension.js     Activation, presentation refresh, event wiring.
   commands.js      Command Palette commands.
   store.js         Per-document cache and live edit tracking.
+  review-model.js   Pure merge/group logic for the Review tree (no vscode, no fs).
+  review-tree.js    Review TreeDataProvider, collector and TreeItem classes.
+  review-commands.js Commands behind the Review tree (open/hold/edit/reattach/refresh).
   presentation.js  Markers, hover content, diagnostics, sidecar dimming.
   highlights.js    Line highlight decorations.
   drafts.js        The draft editor for writing a comment.
@@ -103,6 +106,8 @@ Each rule has tests. Keep them passing.
 | `configuration.test.js` | Settings defaults, version consistency, Explorer nesting defaults. |
 | `performance.test.js` | Fast paths keep exact results; the cleanup script only deletes generated files. |
 | `style.test.js` | The style check: what it accepts and what it flags. |
+| `review.test.js` | Review model: grouping, ordering, merge (live-vs-disk, orphan drop). |
+| `review-tree.test.js` | Review provider, collector and tooltip (minimal vscode mock + real temp fs). |
 
 `npm run test:aliases` repeats everything with `TMPDIR` behind a directory symlink, to catch path-alias bugs. It is not a macOS desktop test.
 
@@ -119,6 +124,7 @@ What the tests do **not** prove: real VS Code or Cursor rendering, Windows or ma
 7. With the source or sidecar unsaved, try to save a draft. It fails without overwriting.
 8. Rename a source file in the Explorer. Its `.comment` file follows.
 9. Point an agent at the CLI or MCP server and check it reads comments with the source.
+10. Open the **Review** activity-bar view. Comments that need attention appear under **Needs review / Detached / Ambiguous** with a workspace-total badge. Click an item to jump to its line; use the inline **Still holds / Update / Reattach** actions and confirm the badge and empty-state message update. Edit an annotated line in an open file and confirm the tree updates live.
 
 ## Release
 

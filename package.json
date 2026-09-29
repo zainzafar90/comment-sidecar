@@ -71,6 +71,23 @@
         "path": "./media/comment-sidecar.tmLanguage.json"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "commentSidecar",
+          "title": "Comment Sidecar",
+          "icon": "media/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "commentSidecar": [
+        {
+          "id": "commentSidecar.review",
+          "name": "Review"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "commentSidecar.add",
@@ -119,6 +136,31 @@
       {
         "command": "commentSidecar.copyMcp",
         "title": "Comment Sidecar: Copy Cursor MCP Configuration"
+      },
+      {
+        "command": "commentSidecar.review.open",
+        "title": "Comment Sidecar: Jump to Comment",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "commentSidecar.review.hold",
+        "title": "Comment Sidecar: Mark as Still Holds",
+        "icon": "$(check)"
+      },
+      {
+        "command": "commentSidecar.review.edit",
+        "title": "Comment Sidecar: Update Comment",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "commentSidecar.review.reattach",
+        "title": "Comment Sidecar: Reattach Comment",
+        "icon": "$(pin)"
+      },
+      {
+        "command": "commentSidecar.review.refresh",
+        "title": "Comment Sidecar: Refresh Review",
+        "icon": "$(refresh)"
       }
     ],
     "menus": {
@@ -137,6 +179,63 @@
           "command": "commentSidecar.preview",
           "when": "resourceScheme == file",
           "group": "commentSidecar@3"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "commentSidecar.review.refresh",
+          "when": "view == commentSidecar.review",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "commentSidecar.review.open",
+          "when": "view == commentSidecar.review && viewItem =~ /Item$/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "commentSidecar.review.hold",
+          "when": "view == commentSidecar.review && viewItem == commentSidecar.reviewItem && isWorkspaceTrusted",
+          "group": "inline@1"
+        },
+        {
+          "command": "commentSidecar.review.edit",
+          "when": "view == commentSidecar.review && viewItem == commentSidecar.reviewItem && isWorkspaceTrusted",
+          "group": "inline@2"
+        },
+        {
+          "command": "commentSidecar.review.reattach",
+          "when": "view == commentSidecar.review && viewItem == commentSidecar.reviewItem && isWorkspaceTrusted",
+          "group": "inline@3"
+        },
+        {
+          "command": "commentSidecar.review.reattach",
+          "when": "view == commentSidecar.review && viewItem == commentSidecar.detachedItem && isWorkspaceTrusted",
+          "group": "inline@1"
+        },
+        {
+          "command": "commentSidecar.review.reattach",
+          "when": "view == commentSidecar.review && viewItem == commentSidecar.ambiguousItem && isWorkspaceTrusted",
+          "group": "inline@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "commentSidecar.review.open",
+          "when": "false"
+        },
+        {
+          "command": "commentSidecar.review.hold",
+          "when": "false"
+        },
+        {
+          "command": "commentSidecar.review.edit",
+          "when": "false"
+        },
+        {
+          "command": "commentSidecar.review.reattach",
+          "when": "false"
         }
       ]
     },
