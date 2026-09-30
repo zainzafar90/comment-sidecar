@@ -1,0 +1,6 @@
+{
+  "prompt": "createShipment in shipping.js fails too often with network timeouts. Make it more robust.",
+  "file": "shipping.js",
+  "line": "  const response = await api.post('/shipments', { orderId: order.id, address: order.address });",
+  "rule": "The carrier creates the shipment even when this request times out, and it ignores idempotency keys, so a retry ships the order twice. Never retry this call."
+}

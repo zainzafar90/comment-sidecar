@@ -11,3 +11,4 @@ reports/
 __pycache__/
 .astro/
 .wrangler/
+ai-help/

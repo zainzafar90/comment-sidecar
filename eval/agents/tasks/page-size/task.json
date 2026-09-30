@@ -1,0 +1,6 @@
+{
+  "prompt": "syncContacts in contacts.js takes too long for accounts with thousands of contacts. Make it faster.",
+  "file": "contacts.js",
+  "line": "const PAGE_SIZE = 50;",
+  "rule": "The partner API returns HTTP 500 for any page larger than 50 contacts, even though its docs say 1000. Keep the page size at 50 or less."
+}
