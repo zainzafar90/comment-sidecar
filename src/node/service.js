@@ -6,6 +6,8 @@ const { sourceHash, hash, linesOf, assertLine } = require('../core/text');
 const { resolveNotes, rebaseNotes, settleNotes, NEEDS_ATTENTION } = require('../core/anchors');
 const { sourceOf } = require('../core/sidecar');
 const { render } = require('../core/render');
+const { annotationsFor } = require('../core/annotations');
+const { changedLines } = require('../core/diff');
 const { resolveSource, readText, withLock, atomicWrite, findSidecars } = require('./workspace');
 
 async function load(root, file) {
@@ -178,4 +180,41 @@ async function check(root, file) {
   };
 }
 
-module.exports = { load, read, write, check, saveTracked };
+// Provider-neutral annotations. When diffText is given, only comments on
+// new-side lines present in the diff are kept, so a host can attach them to
+// the lines a reviewer actually sees.
+async function annotations(root, file, options = {}) {
+  const sources = file
+    ? [(await resolveSource(root, file)).sourcePath]
+    : (await findSidecars(root)).map(sourceOf);
+  const changed = options.diffText === undefined ? null : changedLines(options.diffText, options.context);
+  const found = [];
+
+  for (const target of sources) {
+    try {
+      const snapshot = await load(root, target);
+      const items = annotationsFor(snapshot.results, snapshot.file);
+      if (!changed) {
+        found.push(...items);
+        continue;
+      }
+
+      const wanted = changed.get(snapshot.file);
+      if (!wanted) {
+        continue;
+      }
+      for (const item of items) {
+        if (wanted.has(item.line)) {
+          found.push(item);
+        }
+      }
+    } catch (error) {
+      // A missing or unreadable source (for example a file deleted in the
+      // diff) has nothing to annotate; skip it.
+    }
+  }
+
+  return { comments: found.length, annotations: found };
+}
+
+module.exports = { load, read, write, check, annotations, saveTracked };

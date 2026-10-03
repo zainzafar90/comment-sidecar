@@ -3,6 +3,7 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const service = require('./node/service');
+const { readText } = require('./node/workspace');
 const { agentRules } = require('./node/rules');
 const { version } = require('../package.json');
 
@@ -16,6 +17,7 @@ sidecar reanchor FILE --id ID --line N --expected-text TEXT --source-hash HASH -
 sidecar review FILE --id ID --source-hash HASH --sidecar-hash HASH
 sidecar sync FILE --source-hash HASH --sidecar-hash HASH
 sidecar check [FILE] [--json]
+sidecar annotations [FILE] [--diff DIFFFILE] [--context N] [--json]
 sidecar rules
 sidecar --version
 
@@ -23,6 +25,7 @@ All commands accept --root PATH (default: current directory).
 Use --text-file PATH instead of --text for multiline comments.
 read returns revision hashes. Writes require both hashes; source files are never written.
 check exits 1 for comments requiring attention, 2 for invocation errors.
+annotations prints provider-neutral JSON: { path, line, message, level }. With --diff, comments on changed lines are kept; --context N (default 3, the standard) also keeps comments within N unchanged lines of a change. Source files are never written.
 `;
 
 function argumentsOf(argv) {
@@ -31,6 +34,7 @@ function argumentsOf(argv) {
   const allowed = new Set([
     'root', 'start', 'end', 'mode', 'json', 'help', 'version', 'line', 'text',
     'text-file', 'expected-text', 'source-hash', 'sidecar-hash', 'id', 'comment-budget',
+    'diff', 'context',
   ]);
 
   for (let i = 0; i < argv.length; i++) {
@@ -85,6 +89,21 @@ async function main(argv = process.argv.slice(2)) {
       process.exitCode = 1;
     }
 
+    return;
+  }
+  if (command === 'annotations') {
+    if (positional.length > 2) {
+      throw new Error('Specify at most one source file.');
+    }
+
+    let diffText;
+    if (flags.diff) {
+      diffText = await readText(flags.diff);
+    }
+
+    const context = flags.context === undefined ? undefined : Number(flags.context);
+    const report = await service.annotations(root, file, { diffText, context });
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
     return;
   }
   if (!file || positional.length > 2) {

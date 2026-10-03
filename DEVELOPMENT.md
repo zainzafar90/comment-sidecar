@@ -37,6 +37,8 @@ src/core/        Pure logic. No filesystem, no VS Code.
   anchors.js       Find where each note belongs in the current source.
   edits.js         Move notes through live editor edits.
   render.js        Text output for agents (source + comments).
+  annotations.js   Provider-neutral review annotations (path, line, message, level).
+  diff.js          Unified-diff parser: which new-side lines changed.
   sidecar.js       The .comment suffix: source path to sidecar path and back.
   text.js          Line splitting, hashing, newline handling.
 src/node/        Filesystem access.
@@ -80,6 +82,9 @@ Each rule has tests. Keep them passing.
 - **Paths stay inside the workspace.** Symlinked files and links that leave the workspace are rejected. Directory aliases (such as macOS `/var` → `/private/var`) are allowed.
 - **Comment text is untrusted.** Hovers use plain text with HTML and commands disabled. Agent output labels comments as data.
 - **Settings defaults live in `package.json`.** `settings.js` reads them; do not repeat them in code.
+- **Review annotations are provider-neutral.** `annotationsFor` in `core/annotations.js` emits only `{ path, line, message, level }` where `level` is `info` or `warning`. Platform levels (`notice`, etc.) are mapped in the workflow adaptor, never in the core, CLI, or extension. The core never mentions a hosting platform.
+- **Only changed lines are annotated by default.** `changedLines` in `core/diff.js` records added (`+`) lines; a `context` argument widens that window around each change (default 3, the standard). The workflow reads the window from the `COMMENT_SIDECAR_CONTEXT` repository variable (default 3).
+- **The CLI makes no network calls.** `sidecar annotations` only reads the workspace and a diff; posting happens in the workflow.
 
 ## Code style
 
@@ -98,7 +103,9 @@ Each rule has tests. Keep them passing.
 | --- | --- |
 | `format.test.js` | The file format: round trips, golden fixture, limits, malformed and unsupported files, service writes. |
 | `core.test.js` | Matching (moved, review, ambiguous, detached), live edit tracking, agent rendering. |
-| `service.test.js` | Filesystem safety, revision guards, concurrent writers, CLI and MCP in real subprocesses. |
+| `service.test.js` | Filesystem safety, revision guards, concurrent writers, CLI and MCP in real subprocesses, in-diff annotation filtering. |
+| `annotations.test.js` | Neutral annotation records: levels, message format, unresolved-skipping. |
+| `diff.test.js` | Unified-diff parsing: hunks, added/context/removed lines, new/deleted/renamed files, CRLF, spaced paths, context window. |
 | `extension.test.js` | Extension code against a **mocked** VS Code API, with a real temp filesystem. |
 | `configuration.test.js` | Settings defaults, version consistency, Explorer nesting defaults. |
 | `performance.test.js` | Fast paths keep exact results; the cleanup script only deletes generated files. |

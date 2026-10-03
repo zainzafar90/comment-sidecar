@@ -364,3 +364,79 @@ test('directory aliases cannot bypass excluded dependency directories', async t 
   await fs.symlink(path.join(real, 'node_modules'), path.join(real, 'friendly'), symlinkType);
   await assert.rejects(() => service.load(alias, 'friendly/module.js'), /excluded/);
 });
+
+test('annotations stay neutral and filter to changed lines from a diff', async t => {
+  const root = await fixture(t);
+  await add(root, 'Needs review.');
+
+  // Line 2 changed in the diff, line 1 is context. Only line 2 is in scope.
+  const diff = [
+    '--- a/app.ts',
+    '+++ b/app.ts',
+    '@@ -1,2 +1,2 @@',
+    ' const ready = false;',
+    '+if (!ready) awaitReady();',
+    ' start();',
+  ].join('\n');
+
+  const filtered = await service.annotations(root, undefined, { diffText: diff });
+  assert.equal(filtered.comments, 1);
+  assert.equal(filtered.annotations.length, 1);
+  assert.equal(filtered.annotations[0].line, 2);
+  assert.equal(filtered.annotations[0].level, 'info');
+
+  const unfiltered = await service.annotations(root, undefined);
+  assert.equal(unfiltered.comments, 1);
+  assert.equal(unfiltered.annotations[0].path, 'app.ts');
+
+  // An empty diff means nothing changed, so nothing is annotated.
+  assert.equal((await service.annotations(root, undefined, { diffText: '' })).comments, 0);
+});
+
+test('annotations widen scope to context lines around changes', async t => {
+  const root = await fixture(t);
+  const snapshot = await service.load(root, 'app.ts');
+  await service.write(root, 'app.ts', {
+    operation: 'add',
+    line: 1,
+    text: 'Top-level note.',
+    expectedText: 'const ready = false;',
+    ...revisions(snapshot),
+  });
+
+  // Line 2 changes; line 1 is only context. A comment on line 1 is kept
+  // only when the context window reaches it.
+  const diff = [
+    '--- a/app.ts',
+    '+++ b/app.ts',
+    '@@ -1,2 +1,2 @@',
+    ' const ready = false;',
+    '+if (!ready) awaitReady();',
+    ' start();',
+  ].join('\n');
+
+  assert.equal((await service.annotations(root, undefined, { diffText: diff, context: 0 })).comments, 0);
+  assert.equal((await service.annotations(root, undefined, { diffText: diff, context: 1 })).comments, 1);
+});
+
+test('annotations CLI accepts a diff file and prints neutral JSON', async t => {
+  const root = await fixture(t);
+  await add(root);
+  const cli = path.join(__dirname, '../src/cli.js');
+
+  await fs.writeFile(path.join(root, 'diff.txt'), [
+    '--- a/app.ts',
+    '+++ b/app.ts',
+    '@@ -1,2 +1,2 @@',
+    ' const ready = false;',
+    '+if (!ready) wait();',
+    ' start();',
+  ].join('\n'));
+
+  const response = await exec(process.execPath, [
+    cli, 'annotations', '--root', root, '--diff', path.join(root, 'diff.txt'), '--json',
+  ]);
+  const report = JSON.parse(response.stdout);
+  assert.equal(report.comments, 1);
+  assert.equal(report.annotations[0].level, 'info');
+});

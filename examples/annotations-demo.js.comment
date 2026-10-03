@@ -1,0 +1,9 @@
+# comment-sidecar v2
+--- annotations-demo.js
++++ annotations-demo.js.annotated
+@@ 2 @@ id=sc_573887e95b19 base=3a88b58fcef5ed28d1cae31a5dd831151524d39a02f3a67914595d67a9e296e3 state=attached
+@anchor sha256 before=1 after=2 strong=1 target=2c3ac7d6a2d1ccd470860a9f47d4f578c55dede7a39735d705eef1b0214edb44 context=024050e66de1e3ada49bcd39696b1b627a57a296f98434e504688fd4b6e4cb78
++// Early return keeps the wait explicit; consider a named helper.
+@@ 3 @@ id=sc_1148f482acfa base=3a88b58fcef5ed28d1cae31a5dd831151524d39a02f3a67914595d67a9e296e3 state=review
+@anchor sha256 before=2 after=1 strong=1 target=13a8d0beb4f6662bd61bd189e0000465fe0c848ee5dd090bae85b8860bd44f87 context=024050e66de1e3ada49bcd39696b1b627a57a296f98434e504688fd4b6e4cb78
++// Calling start() unconditionally may run before wait() resolves.

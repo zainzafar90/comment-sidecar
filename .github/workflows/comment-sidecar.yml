@@ -1,0 +1,76 @@
+name: Comment Sidecar
+
+on:
+  pull_request:
+
+jobs:
+  annotate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - name: Check out the PR head revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Compute the diff against the base revision
+        id: diff
+        run: |
+          git diff "${{ github.event.pull_request.base.sha }}"...HEAD > "$RUNNER_TEMP/diff.txt" || true
+
+      - name: Build provider-neutral annotations for changed lines
+        id: annotations
+        env:
+          COMMENT_SIDECAR_CONTEXT: ${{ vars.COMMENT_SIDECAR_CONTEXT }}
+        run: |
+          node src/cli.js annotations --diff "$RUNNER_TEMP/diff.txt" --context "${COMMENT_SIDECAR_CONTEXT:-3}" --json > "$RUNNER_TEMP/annotations.json" || true
+
+      - name: Post the Comment Sidecar check
+        uses: actions/github-script@v7
+        env:
+          ANNOTATIONS_FILE: ${{ runner.temp }}/annotations.json
+        with:
+          script: |
+            const fs = require('node:fs');
+
+            const report = JSON.parse(fs.readFileSync(process.env.ANNOTATIONS_FILE, 'utf8'));
+
+            // Map neutral levels to GitHub levels in this adaptor only.
+            const annotations = (report.annotations || []).map(item => ({
+              path: item.path,
+              start_line: item.line,
+              end_line: item.line,
+              annotation_level: item.level === 'warning' ? 'warning' : 'notice',
+              message: item.message,
+            }));
+
+            const title = `Comment Sidecar (${report.comments} annotation${report.comments === 1 ? '' : 's'})`;
+            const summary = `${report.comments} sidecar comment${report.comments === 1 ? '' : 's'} on changed line${report.comments === 1 ? '' : 's'}.`;
+
+            const post = chunk => github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'Comment Sidecar',
+              head_sha: context.payload.pull_request.head.sha,
+              status: 'completed',
+              conclusion: 'neutral',
+              output: { title, summary, annotations: chunk },
+            });
+
+            if (annotations.length === 0) {
+              await post([]);
+              return;
+            }
+
+            const CHUNK = 50;
+            for (let i = 0; i < annotations.length; i += CHUNK) {
+              await post(annotations.slice(i, i + CHUNK));
+            }

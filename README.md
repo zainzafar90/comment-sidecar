@@ -109,10 +109,13 @@ The copied instructions already contain the full path to the CLI on your machine
 node src/cli.js read examples/app.tsx --start 1 --end 8                   # source and comments
 node src/cli.js read examples/app.tsx --start 1 --end 8 --mode comments   # comments only
 node src/cli.js check examples/app.tsx                                    # problems only
+node src/cli.js annotations --diff diff.txt --json                        # neutral review annotations
 node src/cli.js --help                                                    # write commands
 ```
 
 Pass `--root /path/to/repo` to work on another repository. `read` prints the original line numbers and two revision hashes. Every write needs both hashes from a fresh read, so an agent can't overwrite changes it hasn't seen; `add` and `reanchor` also need the exact text of the target line.
+
+`annotations` prints provider-neutral review annotations — `{ path, line, message, level }`, where `level` is `info` or `warning` — as JSON. It never talks to a server. Pass a unified diff with `--diff FILE` to keep comments on changed lines; add `--context N` to also keep comments within `N` unchanged lines of a change (default 3, the standard diff context). The included workflow (`.github/workflows/comment-sidecar.yml`) runs `annotations` on each pull request and posts the result as a **Comment Sidecar** check, so comments on changed lines appear pinned in the PR diff. Comments on lines outside the diff are not shown, because a hosting platform only renders annotations on lines in the diff.
 
 </details>
 
